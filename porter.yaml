@@ -32,7 +32,7 @@ parameters:
 
 - name: storage_container_name
   type: string
-  default: web
+  default: $web
 
 install:
   - azure:
@@ -59,6 +59,19 @@ install:
         account-key: "{{ bundle.outputs.STORAGE_ACCOUNT_KEY }}"
         static-website: true
         index-document: index.html
+  - az:
+      description: "Copy static site files"
+      arguments:
+        - storage
+        - blob
+        - upload
+      flags:
+        container-name: "{{ bundle.parameters.storage_container_name }}"
+        file: src/index.html
+        name: index.html
+        account-name: "{{ bundle.parameters.storage_account_name }}"
+        account-key: "{{ bundle.outputs.STORAGE_ACCOUNT_KEY }}"
+        auth-mode: key
 
 uninstall:
   - az:
@@ -81,4 +94,14 @@ uninstall:
         name: "{{ bundle.parameters.storage_account_name }}"
         subscription: "{{ bundle.credentials.SUBSCRIPTION_ID }}"
         resource-group: "{{ bundle.parameters.resource_group }}"
+        'yes': null
+
+  - az:
+      description: "Delete Resource Group"
+      arguments:
+        - group
+        - delete
+      flags:
+        name: "{{ bundle.parameters.resource_group }}"
+        subscription: "{{ bundle.credentials.SUBSCRIPTION_ID }}"
         'yes': null
